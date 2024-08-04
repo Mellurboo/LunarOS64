@@ -5,3 +5,8 @@ Lunar written with the Limine bootloader by [@mintsuki](https://github.com/mints
 
 Lunar OS is still growing and I aim to have a working and fleshed out terminal soon.
 
+## Build Sequence
+
+`make all` compiles the operating system and installs all dependencies
+`make run` does all compilation and runs the operating system in qemu
+`make debug` does all compilation and run the operating system with the qemu monitor attached to the terminal. this will soon include qemu logging
