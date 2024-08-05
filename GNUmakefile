@@ -58,6 +58,9 @@ $(IMAGE_NAME).iso: limine/limine kernel
 		iso_root -o $(IMAGE_NAME).iso
 	./limine/limine bios-install $(IMAGE_NAME).iso
 	rm -rf iso_root
+	mkdir -p build
+	cp $(IMAGE_NAME).iso build/$(IMAGE_NAME).iso
+	rm -rf $(IMAGE_NAME).iso
 
 $(IMAGE_NAME).hdd: limine/limine kernel
 	rm -f $(IMAGE_NAME).hdd

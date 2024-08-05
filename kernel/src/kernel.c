@@ -55,7 +55,6 @@ void kstart(void) {
 
   kprintf("%sLunar OS - x64 UEFI%s\n", BYEL, reset);
 
-  
   // ==== Calculating Total Installed Memory ==== /
   uint64_t total_memory = 0;
   for (size_t i = 0; i < memmap_request.response->entry_count; i++) {

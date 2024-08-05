@@ -1,3 +1,5 @@
 limine/
 ovmf/
 build/
+kernel/bin
+kernel/obj
