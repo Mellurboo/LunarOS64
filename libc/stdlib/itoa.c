@@ -1,14 +1,7 @@
 #include <stdint.h>
 
-int strlen(char *str) {
-    int len = 0;
-    while (*str++) len++;
-    return len;
-}
-
-// Helper function to convert integer to string in a specific base
 void itoa_base(uint64_t value, char* str, int base) {
-    char buffer[65]; // Enough to hold binary representation of a 64-bit number + null terminator
+    char buffer[65]; 
     int pos = 0;
 
     if (value == 0) {

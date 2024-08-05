@@ -1,8 +1,7 @@
-#include <stdint.h>
+#include <include/arch64/gdt.h>
 
-#include <include/arch64/des_tables/gdt.h>
-#include <include/stdio.h>
-#include <include/string.h>
+#include "../libc/include/stdio.h"
+#include </libc/include/string.h>
 
 #pragma pack(push, 1)  // Ensure no padding
 
