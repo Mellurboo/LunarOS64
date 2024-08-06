@@ -1,7 +1,7 @@
 #include <include/arch64/gdt.h>
 
-#include "include/stdio.h"
-#include "include/string.h"
+#include "src/include/stdio.h"
+#include "src/include/string.h"
 
 #pragma pack(push, 1)  // Ensure no padding
 

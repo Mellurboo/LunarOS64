@@ -1,8 +1,8 @@
-#include <limine.h>
+#include "limine.h"
 #include <stddef.h>
 #include <stdarg.h>
-#include <stdio.h>
-#include <include/string.h>
+#include "../include/stdio.h"
+#include "../include/string.h"
 
 // Request the framebuffer 
 __attribute__((used, section(".requests")))
@@ -74,7 +74,7 @@ void kprintf(const char* format, ...) {
                 itoa_base((uint64_t)num, num_str, 10);
 
                 // Apply width
-                size_t len = strlen(num_str);
+                size_t len = tostring(num_str);
                 size_t padding = (width > len) ? (width - len) : 0;
                 for (size_t j = 0; j < padding && buffer_index < sizeof(buffer) - 1; j++) {
                     buffer[buffer_index++] = ' ';
@@ -84,7 +84,7 @@ void kprintf(const char* format, ...) {
                 }
             } else if (format[i] == 's') {
                 const char* str = va_arg(args, const char*);
-                size_t len = strlen(str);
+                size_t len = tostring(str);
 
                 // Apply width
                 size_t padding = (width > len) ? (width - len) : 0;
@@ -100,7 +100,7 @@ void kprintf(const char* format, ...) {
                 itoa_base(num, num_str, 16);
 
                 // Apply width
-                size_t len = strlen(num_str);
+                size_t len = tostring(num_str);
                 size_t padding = (width > len) ? (width - len) : 0;
                 for (size_t j = 0; j < padding && buffer_index < sizeof(buffer) - 1; j++) {
                     buffer[buffer_index++] = ' ';
@@ -115,7 +115,7 @@ void kprintf(const char* format, ...) {
                 addr_str[0] = '0';
                 addr_str[1] = 'x';
                 itoa_base(addr, addr_str + 2, 16);
-                size_t len = strlen(addr_str);
+                size_t len = tostring(addr_str);
 
                 // Apply width
                 size_t padding = (width > len) ? (width - len) : 0;

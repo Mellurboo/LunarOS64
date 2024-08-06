@@ -11,9 +11,7 @@ define DEFAULT_VAR =
     endif
 endef
 
-# It is suggested to use a custom built cross toolchain to build a kernel.
-# We are using the standard "cc" here, it may work by using
-# the host system's toolchain, but this is not guaranteed.
+# Use a custom built cross toolchain to build a kernel.
 override DEFAULT_KCC := cc
 $(eval $(call DEFAULT_VAR,KCC,$(DEFAULT_KCC)))
 
@@ -54,10 +52,11 @@ override KCFLAGS += \
     -mno-sse \
     -mno-sse2 \
     -mno-red-zone \
+    -I src/ \
 
 # Internal C preprocessor flags that should not be changed by the user.
 override KCPPFLAGS := \
-    -I src \
+    -I src/ \
     $(KCPPFLAGS) \
     -MMD \
     -MP
@@ -75,11 +74,11 @@ override KNASMFLAGS += \
 
 # Use "find" to glob all *.c, *.S, and *.asm files in the tree and obtain the
 # object and header dependency file names.
-override CFILES := $(shell cd src && find -L * -type f -name '*.c')
-override ASFILES := $(shell cd src && find -L * -type f -name '*.S')
-override NASMFILES := $(shell cd src && find -L * -type f -name '*.asm')
-override OBJ := $(addprefix obj/,$(CFILES:.c=.c.o) $(ASFILES:.S=.S.o) $(NASMFILES:.asm=.asm.o))
-override HEADER_DEPS := $(addprefix obj/,$(CFILES:.c=.c.d) $(ASFILES:.S=.S.d))
+override CFILES := $(shell find src -type f -name '*.c')
+override ASFILES := $(shell find src -type f -name '*.S')
+override NASMFILES := $(shell find src -type f -name '*.asm')
+override OBJ := $(addprefix obj/,$(CFILES:src/%.c=%.c.o) $(ASFILES:src/%.S=%.S.o) $(NASMFILES:src/%.asm=%.asm.o))
+override HEADER_DEPS := $(addprefix obj/,$(CFILES:src/%.c=%.c.d) $(ASFILES:src/%.S=%.S.d))
 
 # Default target.
 .PHONY: all
@@ -89,25 +88,29 @@ all: bin/libc.a
 bin/libc.a: $(OBJ)
 	mkdir -p $(dir $@)
 	ar rcs $@ $(OBJ)
+	ranlib $@  # Ensure the archive is indexed
 
-src/limine.h:
-	curl -Lo $@ https://github.com/limine-bootloader/limine/raw/trunk/limine.h
+# Download limine.h
+.PHONY: limine
+limine:
+	mkdir -p src
+	curl -Lo src/limine.h https://github.com/limine-bootloader/limine/raw/trunk/limine.h
 
 # Include header dependencies.
 -include $(HEADER_DEPS)
 
 # Compilation rules for *.c files.
-obj/%.c.o: */%.c GNUmakefile src/limine.h
+obj/%.c.o: src/%.c GNUmakefile
 	mkdir -p "$$(dirname $@)"
 	$(KCC) $(KCFLAGS) $(KCPPFLAGS) -c $< -o $@
 
 # Compilation rules for *.S files.
-obj/%.S.o: */%.S GNUmakefile
+obj/%.S.o: src/%.S GNUmakefile
 	mkdir -p "$$(dirname $@)"
 	$(KCC) $(KCFLAGS) $(KCPPFLAGS) -c $< -o $@
 
 # Compilation rules for *.asm (nasm) files.
-obj/%.asm.o: */%.asm GNUmakefile
+obj/%.asm.o: src/%.asm GNUmakefile
 	mkdir -p "$$(dirname $@)"
 	nasm $(KNASMFLAGS) $< -o $@
 
@@ -119,3 +122,8 @@ clean:
 .PHONY: distclean
 distclean: clean
 	rm -f src/limine.h
+
+# Build the libc target.
+.PHONY: libc
+libc:
+	make -C libc
