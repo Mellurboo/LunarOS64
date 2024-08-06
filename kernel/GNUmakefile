@@ -54,9 +54,9 @@ override KCFLAGS += \
     -mno-sse \
     -mno-sse2 \
     -mno-red-zone \
+    -I ../libc/
 
 # Internal C preprocessor flags that should not be changed by the user.
-# Added -I../libc/include to include libc headers
 override KCFLAGS += \
     -I src \
     -I ../libc/
@@ -97,7 +97,7 @@ src/limine.h:
 # See https://sourceware.org/bugzilla/show_bug.cgi?id=31795 for more information.
 bin/$(KERNEL): GNUmakefile linker.ld $(OBJ)
 	mkdir -p "$$(dirname $@)"
-	$(KLD) $(OBJ) ../libc/libc.a $(KLDFLAGS) -o $@
+	$(KLD) $(OBJ) ../libc/bin/libc.a $(KLDFLAGS) -o $@
 	printf '\003' | dd of=$@ bs=1 count=1 seek=16 conv=notrunc 2>/dev/null
 
 # Include header dependencies.

@@ -54,7 +54,6 @@ override KCFLAGS += \
     -mno-sse \
     -mno-sse2 \
     -mno-red-zone \
-    -I ../libc/ \
 
 # Internal C preprocessor flags that should not be changed by the user.
 override KCPPFLAGS := \

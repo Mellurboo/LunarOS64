@@ -5,9 +5,8 @@
 #include <stdbool.h>
 #include <limine.h>
 
-#include <libc/include/stdio.h>
-#include <include/string.h>
-#include <libc/include/string.h>
+#include "include/stdio.h"
+#include "include/string.h"
 #include <include/arch64/gdt.h>
 
 #include "kernel.h"

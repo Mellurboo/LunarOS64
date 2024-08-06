@@ -80,8 +80,8 @@
 
 #include <string.h>
 
-#include "standard/flantern/fb.h"
-#include "standard/flantern/flanterm.h"
+#include "flantern/fb.h"
+#include "flantern/flanterm.h"
 
 void kprintf(const char* format, ...);
 int snprintf(char *buffer, size_t size, const char *format, ...);
