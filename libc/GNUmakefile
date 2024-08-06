@@ -84,17 +84,14 @@ override HEADER_DEPS := $(addprefix obj/,$(CFILES:src/%.c=%.c.d) $(ASFILES:src/%
 .PHONY: all
 all: bin/libc.a
 
+src/include/limine.h:
+	curl -Lo $@ https://github.com/limine-bootloader/limine/raw/trunk/limine.h
+
 # Static library target.
 bin/libc.a: $(OBJ)
 	mkdir -p $(dir $@)
 	ar rcs $@ $(OBJ)
 	ranlib $@  # Ensure the archive is indexed
-
-# Download limine.h
-.PHONY: limine
-limine:
-	mkdir -p src
-	curl -Lo src/limine.h https://github.com/limine-bootloader/limine/raw/trunk/limine.h
 
 # Include header dependencies.
 -include $(HEADER_DEPS)
