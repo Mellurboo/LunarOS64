@@ -7,6 +7,7 @@
 #include "src/include/stdio.h"
 #include "src/include/string.h"
 #include "include/gdt.h"
+#include "include/idt.h"
 #include "include/sysinfo.h"
 #include "include/limine.h"
 #include "include/panic.h"
@@ -31,7 +32,16 @@ void kstart(void) {
 
   // setup some descriptor tables
   init_gdt();
-  
+  init_idt();
 
+  fault();
+  
   panic("The lunar kernel has finished execution, the CPU is halted and interrupts are dissabled");
+}
+
+void fault(){
+  int a = 1;
+  int b = 0;
+  int c = a / b;
+  printf("Result: %d\n", c);
 }
