@@ -1,10 +1,6 @@
 # Nuke built-in rules and variables.
 override MAKEFLAGS += -rR
 
-# This is the name that our final kernel executable will have.
-# Change as needed.
-override KERNEL := kernel
-
 # Convenience macro to reliably declare user overridable variables.
 define DEFAULT_VAR =
     ifeq ($(origin $1),default)
@@ -15,9 +11,7 @@ define DEFAULT_VAR =
     endif
 endef
 
-# It is suggested to use a custom built cross toolchain to build a kernel.
-# We are using the standard "cc" here, it may work by using
-# the host system's toolchain, but this is not guaranteed.
+# Use a custom built cross toolchain to build a kernel.
 override DEFAULT_KCC := cc
 $(eval $(call DEFAULT_VAR,KCC,$(DEFAULT_KCC)))
 
@@ -28,6 +22,10 @@ $(eval $(call DEFAULT_VAR,KLD,$(DEFAULT_KLD)))
 # User controllable C flags.
 override DEFAULT_KCFLAGS := -g -O2 -pipe
 $(eval $(call DEFAULT_VAR,KCFLAGS,$(DEFAULT_KCFLAGS)))
+
+# User controllable C preprocessor flags. We set none by default.
+override DEFAULT_KCPPFLAGS :=
+$(eval $(call DEFAULT_VAR,KCPPFLAGS,$(DEFAULT_KCPPFLAGS)))
 
 # User controllable nasm flags.
 override DEFAULT_KNASMFLAGS := -F dwarf -g
@@ -54,19 +52,18 @@ override KCFLAGS += \
     -mno-sse \
     -mno-sse2 \
     -mno-red-zone \
-    -I ../libc/
+    -I src/ \
 
 # Internal C preprocessor flags that should not be changed by the user.
-override KCFLAGS += \
-    -I src \
-    -I ../libc/
+override KCPPFLAGS := \
+    -I src/ \
+    $(KCPPFLAGS) \
+    -MMD \
+    -MP
 
 # Internal linker flags that should not be changed by the user.
 override KLDFLAGS += \
     -m elf_x86_64 \
-    -nostdlib \
-    -pie \
-    -z text \
     -z max-page-size=0x1000 \
     -T linker.ld
 
@@ -77,48 +74,44 @@ override KNASMFLAGS += \
 
 # Use "find" to glob all *.c, *.S, and *.asm files in the tree and obtain the
 # object and header dependency file names.
-override CFILES := $(shell cd src && find -L * -type f -name '*.c')
-override ASFILES := $(shell cd src && find -L * -type f -name '*.S')
-override NASMFILES := $(shell cd src && find -L * -type f -name '*.asm')
-override OBJ := $(addprefix obj/,$(CFILES:.c=.c.o) $(ASFILES:.S=.S.o) $(NASMFILES:.asm=.asm.o))
-override HEADER_DEPS := $(addprefix obj/,$(CFILES:.c=.c.d) $(ASFILES:.S=.S.d))
+override CFILES := $(shell find src -type f -name '*.c')
+override ASFILES := $(shell find src -type f -name '*.S')
+override NASMFILES := $(shell find src -type f -name '*.asm')
+override OBJ := $(addprefix obj/,$(CFILES:src/%.c=%.c.o) $(ASFILES:src/%.S=%.S.o) $(NASMFILES:src/%.asm=%.asm.o))
+override HEADER_DEPS := $(addprefix obj/,$(CFILES:src/%.c=%.c.d) $(ASFILES:src/%.S=%.S.d))
 
 # Default target.
 .PHONY: all
-all: bin/$(KERNEL)
+all: bin/libc.a
 
-src/limine.h:
+src/include/limine.h:
 	curl -Lo $@ https://github.com/limine-bootloader/limine/raw/trunk/limine.h
 
-# Link rules for the final kernel executable.
-# The magic printf/dd command is used to force the final ELF file type to ET_DYN.
-# GNU binutils, for silly reasons, forces the ELF type to ET_EXEC even for
-# relocatable PIEs, if the base load address is non-0.
-# See https://sourceware.org/bugzilla/show_bug.cgi?id=31795 for more information.
-bin/$(KERNEL): GNUmakefile linker.ld $(OBJ)
-	mkdir -p "$$(dirname $@)"
-	$(KLD) $(OBJ) ../libc/bin/libc.a $(KLDFLAGS) -o $@
-	printf '\003' | dd of=$@ bs=1 count=1 seek=16 conv=notrunc 2>/dev/null
+# Static library target.
+bin/libc.a: $(OBJ)
+	mkdir -p $(dir $@)
+	ar rcs $@ $(OBJ)
+	ranlib $@  # Ensure the archive is indexed
 
 # Include header dependencies.
 -include $(HEADER_DEPS)
 
 # Compilation rules for *.c files.
-obj/%.c.o: src/%.c GNUmakefile src/limine.h
+obj/%.c.o: src/%.c GNUmakefile
 	mkdir -p "$$(dirname $@)"
-	$(KCC) $(KCFLAGS) -c $< -o $@
+	$(KCC) $(KCFLAGS) $(KCPPFLAGS) -c $< -o $@
 
 # Compilation rules for *.S files.
 obj/%.S.o: src/%.S GNUmakefile
 	mkdir -p "$$(dirname $@)"
-	$(KCC) $(KCFLAGS) -c $< -o $@
+	$(KCC) $(KCFLAGS) $(KCPPFLAGS) -c $< -o $@
 
 # Compilation rules for *.asm (nasm) files.
 obj/%.asm.o: src/%.asm GNUmakefile
 	mkdir -p "$$(dirname $@)"
 	nasm $(KNASMFLAGS) $< -o $@
 
-# Remove object files and the final executable.
+# Remove object files and the final library.
 .PHONY: clean
 clean:
 	rm -rf bin obj
@@ -126,3 +119,8 @@ clean:
 .PHONY: distclean
 distclean: clean
 	rm -f src/limine.h
+
+# Build the libc target.
+.PHONY: libc
+libc:
+	make -C libc

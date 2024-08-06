@@ -5,10 +5,11 @@
 #include <stdbool.h>
 #include <limine.h>
 
-#include <include/stdio.h>
-#include <include/string.h>
-#include <include/standard/memory/memory.h>
-#include <include/arch64/des_tables/gdt.h>
+#include "src/include/stdio.h"
+#include "src/include/string.h"
+#include <include/arch64/gdt.h>
+
+#include "kernel.h"
 
 // Limine version
 __attribute__((used, section(".requests")))
@@ -36,10 +37,10 @@ static volatile LIMINE_REQUESTS_END_MARKER;
 
 
 static void halt(void) {
-    asm ("cli");
-    for (;;) {
-        asm ("hlt");
-    }
+  asm ("cli");
+  for (;;) {
+      asm ("hlt");
+  }
 }
 
 // here it is, the boot 
@@ -66,7 +67,7 @@ void kstart(void) {
   }
 
   char memory_str[21];
-  itoa(((total_memory / 1024) / 1024), memory_str);
+  itoa((total_memory / BYTE_TO_MB), memory_str);
   kprintf("%s Physical Memory: %s MiB\n", SYSTEM, memory_str);
 
   char cpus[21];
@@ -74,5 +75,6 @@ void kstart(void) {
   kprintf("%s CPUs Detected: %s\n", SYSTEM, cpus);
 
   init_gdt();
+  
   halt();
 }

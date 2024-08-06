@@ -8,26 +8,26 @@ all: $(IMAGE_NAME).iso
 
 .PHONY: debug
 debug: $(IMAGE_NAME).iso
-	qemu-system-x86_64 -hda $(IMAGE_NAME).iso -monitor stdio
+	qemu-system-x86_64 -hda build/$(IMAGE_NAME).iso -monitor stdio
 
 .PHONY: all-hdd
 all-hdd: $(IMAGE_NAME).hdd
 
 .PHONY: run
 run: $(IMAGE_NAME).iso
-	qemu-system-x86_64 -M q35 -m 2G -cdrom $(IMAGE_NAME).iso -boot d
+	qemu-system-x86_64 -M q35 -m 2G -cdrom build/$(IMAGE_NAME).iso -boot d
 
 .PHONY: run-uefi
 run-uefi: ovmf $(IMAGE_NAME).iso
-	qemu-system-x86_64 -M q35 -m 2G -bios ovmf/OVMF.fd -cdrom $(IMAGE_NAME).iso -boot d
+	qemu-system-x86_64 -M q35 -m 2G -bios ovmf/OVMF.fd -cdrom $(IMAGE_NAME).hdo -boot d
 
 .PHONY: run-hdd
-run-hdd: $(IMAGE_NAME).hdd
-	qemu-system-x86_64 -M q35 -m 2G -hda $(IMAGE_NAME).hdd
+run-hdd: build/$(IMAGE_NAME).hdd
+	qemu-system-x86_64 -M q35 -m 2G -hda build/$(IMAGE_NAME).hdd
 
 .PHONY: run-hdd-uefi
-run-hdd-uefi: ovmf $(IMAGE_NAME).hdd
-	qemu-system-x86_64 -M q35 -m 2G -bios ovmf/OVMF.fd -hda $(IMAGE_NAME).hdd
+run-hdd-uefi: ovmf build/$(IMAGE_NAME).hdd
+	qemu-system-x86_64 -M q35 -m 2G -bios ovmf/OVMF.fd -hda build/$(IMAGE_NAME).hdd
 
 ovmf:
 	mkdir -p ovmf
@@ -39,8 +39,12 @@ limine/limine:
 	$(MAKE) -C limine
 
 .PHONY: kernel
-kernel:
+kernel: libc
 	$(MAKE) -C kernel
+
+.PHONY: libc
+libc:
+	$(MAKE) -C libc 
 
 $(IMAGE_NAME).iso: limine/limine kernel
 	rm -rf iso_root
@@ -77,10 +81,6 @@ $(IMAGE_NAME).hdd: limine/limine kernel
 .PHONY: clean
 clean:
 	rm -rf iso_root $(IMAGE_NAME).iso $(IMAGE_NAME).hdd
-	rm -rf build/
+	rm -rf build limine ovmf
 	$(MAKE) -C kernel clean
-
-.PHONY: distclean
-distclean: clean
-	rm -rf limine ovmf
-	$(MAKE) -C kernel distclean
+	$(MAKE) -C libc clean
