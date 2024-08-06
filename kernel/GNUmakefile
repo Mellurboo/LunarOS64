@@ -89,6 +89,8 @@ all: bin/$(KERNEL)
 
 src/limine.h:
 	curl -Lo $@ https://github.com/limine-bootloader/limine/raw/trunk/limine.h
+	cp src/limine.h src/include/limine.h
+	rm -rf src/limine.h 
 
 # Link rules for the final kernel executable.
 # The magic printf/dd command is used to force the final ELF file type to ET_DYN.

@@ -3,6 +3,6 @@
 
 #include <stdint.h>
 
-void start_gdt(void);
+void init_gdt(void);
 
 #endif

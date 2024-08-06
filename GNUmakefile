@@ -38,6 +38,9 @@ limine/limine:
 	git clone https://github.com/limine-bootloader/limine.git --branch=v7.x-binary --depth=1
 	$(MAKE) -C limine
 
+kernel/src/limine.h:
+	curl -Lo $@ https://github.com/limine-bootloader/limine/raw/trunk/limine.h
+
 .PHONY: kernel
 kernel: libc
 	$(MAKE) -C kernel

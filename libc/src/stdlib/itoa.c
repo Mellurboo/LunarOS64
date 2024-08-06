@@ -1,4 +1,4 @@
-#include <stdint.h>
+#include "../include/stdlib.h"
 
 void itoa_base(uint64_t value, char* str, int base) {
     char buffer[65]; 
@@ -16,7 +16,7 @@ void itoa_base(uint64_t value, char* str, int base) {
         value /= base;
     }
 
-    // Reverse the string
+    // flip
     for (int i = 0; i < pos; i++) {
         str[i] = buffer[pos - 1 - i];
     }

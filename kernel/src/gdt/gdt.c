@@ -1,4 +1,4 @@
-#include <include/arch64/gdt.h>
+#include <include/gdt.h>
 
 #include "src/include/stdio.h"
 #include "src/include/string.h"
