@@ -54,19 +54,19 @@ void init_gdt() {
   gdt_ptr.limit = (sizeof(gdt_entry_t) * 6) - 1;
   gdt_ptr.base = (uint64_t)&gdt_entries;
 
-  kprintf("%s GDT Loaded: 0x%x\n", INFO, &gdt_ptr);
+  kprintf("\n%s GDT Loaded: 0x%x\n",INFO, &gdt_ptr);
 
-  kprintf("%sNull: %s\n", YEL, reset);
+  kprintf("%sNull: %s\n", UCYN, reset);
   print_gdt_descriptor(&gdt_entries[0]);
-  kprintf("%sKernel Code: %s\n", RED, reset);
+  kprintf("%sKernel Code: %s\n", BRED, reset);
   print_gdt_descriptor(&gdt_entries[1]);
-  kprintf("%sKernel Data: %s\n", RED, reset);
+  kprintf("%sKernel Data: %s\n", BRED, reset);
   print_gdt_descriptor(&gdt_entries[2]);
-  kprintf("%sUser Code: %s\n", GRN, reset);
+  kprintf("%sUser Code: %s\n", BGRN, reset);
   print_gdt_descriptor(&gdt_entries[3]);
-  kprintf("%sUser Data: %s\n", GRN, reset);
+  kprintf("%sUser Data: %s\n", BGRN, reset);
   print_gdt_descriptor(&gdt_entries[4]);
-  kprintf("%sTSS %s\n", BLU, reset);
+  kprintf("%sTSS %s\n", BBLU, reset);
   print_gdt_descriptor(&gdt_entries[5]);
 
   load_gdt();
