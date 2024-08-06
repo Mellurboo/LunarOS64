@@ -29,10 +29,6 @@ $(eval $(call DEFAULT_VAR,KLD,$(DEFAULT_KLD)))
 override DEFAULT_KCFLAGS := -g -O2 -pipe
 $(eval $(call DEFAULT_VAR,KCFLAGS,$(DEFAULT_KCFLAGS)))
 
-# User controllable C preprocessor flags. We set none by default.
-override DEFAULT_KCPPFLAGS :=
-$(eval $(call DEFAULT_VAR,KCPPFLAGS,$(DEFAULT_KCPPFLAGS)))
-
 # User controllable nasm flags.
 override DEFAULT_KNASMFLAGS := -F dwarf -g
 $(eval $(call DEFAULT_VAR,KNASMFLAGS,$(DEFAULT_KNASMFLAGS)))
@@ -57,14 +53,13 @@ override KCFLAGS += \
     -mno-mmx \
     -mno-sse \
     -mno-sse2 \
-    -mno-red-zone
+    -mno-red-zone \
 
 # Internal C preprocessor flags that should not be changed by the user.
-override KCPPFLAGS := \
+# Added -I../libc/include to include libc headers
+override KCFLAGS += \
     -I src \
-    $(KCPPFLAGS) \
-    -MMD \
-    -MP
+    -I ../libc/
 
 # Internal linker flags that should not be changed by the user.
 override KLDFLAGS += \
@@ -111,12 +106,12 @@ bin/$(KERNEL): GNUmakefile linker.ld $(OBJ)
 # Compilation rules for *.c files.
 obj/%.c.o: src/%.c GNUmakefile src/limine.h
 	mkdir -p "$$(dirname $@)"
-	$(KCC) $(KCFLAGS) $(KCPPFLAGS) -c $< -o $@
+	$(KCC) $(KCFLAGS) -c $< -o $@
 
 # Compilation rules for *.S files.
 obj/%.S.o: src/%.S GNUmakefile
 	mkdir -p "$$(dirname $@)"
-	$(KCC) $(KCFLAGS) $(KCPPFLAGS) -c $< -o $@
+	$(KCC) $(KCFLAGS) -c $< -o $@
 
 # Compilation rules for *.asm (nasm) files.
 obj/%.asm.o: src/%.asm GNUmakefile

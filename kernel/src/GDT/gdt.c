@@ -1,8 +1,5 @@
 #include <include/arch64/gdt.h>
 
-#include "../libc/include/stdio.h"
-#include </libc/include/string.h>
-
 #pragma pack(push, 1)  // Ensure no padding
 
 // Define a GDT descriptor entry

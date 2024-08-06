@@ -44,7 +44,7 @@ kernel: libc
 
 .PHONY: libc
 libc:
-	$(MAKE) -c libc 
+	$(MAKE) -C libc 
 
 $(IMAGE_NAME).iso: limine/limine kernel
 	rm -rf iso_root

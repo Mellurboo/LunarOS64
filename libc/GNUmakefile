@@ -1,10 +1,6 @@
 # Nuke built-in rules and variables.
 override MAKEFLAGS += -rR
 
-# This is the name that our final kernel executable will have.
-# Change as needed.
-override KERNEL := kernel
-
 # Convenience macro to reliably declare user overridable variables.
 define DEFAULT_VAR =
     ifeq ($(origin $1),default)
@@ -57,7 +53,8 @@ override KCFLAGS += \
     -mno-mmx \
     -mno-sse \
     -mno-sse2 \
-    -mno-red-zone
+    -mno-red-zone \
+    -I ../libc/ \
 
 # Internal C preprocessor flags that should not be changed by the user.
 override KCPPFLAGS := \
@@ -69,9 +66,6 @@ override KCPPFLAGS := \
 # Internal linker flags that should not be changed by the user.
 override KLDFLAGS += \
     -m elf_x86_64 \
-    -nostdlib \
-    -pie \
-    -z text \
     -z max-page-size=0x1000 \
     -T linker.ld
 
@@ -90,40 +84,35 @@ override HEADER_DEPS := $(addprefix obj/,$(CFILES:.c=.c.d) $(ASFILES:.S=.S.d))
 
 # Default target.
 .PHONY: all
-all: bin/$(KERNEL)
+all: bin/libc.a
+
+# Static library target.
+bin/libc.a: $(OBJ)
+	mkdir -p $(dir $@)
+	ar rcs $@ $(OBJ)
 
 src/limine.h:
 	curl -Lo $@ https://github.com/limine-bootloader/limine/raw/trunk/limine.h
-
-# Link rules for the final kernel executable.
-# The magic printf/dd command is used to force the final ELF file type to ET_DYN.
-# GNU binutils, for silly reasons, forces the ELF type to ET_EXEC even for
-# relocatable PIEs, if the base load address is non-0.
-# See https://sourceware.org/bugzilla/show_bug.cgi?id=31795 for more information.
-bin/$(KERNEL): GNUmakefile linker.ld $(OBJ)
-	mkdir -p "$$(dirname $@)"
-	$(KLD) $(OBJ) $(KLDFLAGS) -o $@
-	printf '\003' | dd of=$@ bs=1 count=1 seek=16 conv=notrunc 2>/dev/null
 
 # Include header dependencies.
 -include $(HEADER_DEPS)
 
 # Compilation rules for *.c files.
-obj/%.c.o: src/%.c GNUmakefile src/limine.h
+obj/%.c.o: */%.c GNUmakefile src/limine.h
 	mkdir -p "$$(dirname $@)"
 	$(KCC) $(KCFLAGS) $(KCPPFLAGS) -c $< -o $@
 
 # Compilation rules for *.S files.
-obj/%.S.o: src/%.S GNUmakefile
+obj/%.S.o: */%.S GNUmakefile
 	mkdir -p "$$(dirname $@)"
 	$(KCC) $(KCFLAGS) $(KCPPFLAGS) -c $< -o $@
 
 # Compilation rules for *.asm (nasm) files.
-obj/%.asm.o: src/%.asm GNUmakefile
+obj/%.asm.o: */%.asm GNUmakefile
 	mkdir -p "$$(dirname $@)"
 	nasm $(KNASMFLAGS) $< -o $@
 
-# Remove object files and the final executable.
+# Remove object files and the final library.
 .PHONY: clean
 clean:
 	rm -rf bin obj
