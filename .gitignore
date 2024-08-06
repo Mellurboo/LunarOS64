@@ -3,6 +3,8 @@ ovmf/
 build/
 kernel/bin
 kernel/obj
+kernel/src/limine.h
 libc/bin
 libc/obj
+libc/src/include/limine.h
 .vscode
