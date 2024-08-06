@@ -3,3 +3,5 @@ ovmf/
 build/
 kernel/bin
 kernel/obj
+libc/bin
+libc/obj
